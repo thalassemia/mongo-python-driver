@@ -20,30 +20,61 @@
 #define _CBSONMODULE_H
 
 #if defined(WIN32) || defined(_MSC_VER)
-/*
- * This macro is basically an implementation of asprintf for win32
- * We print to the provided buffer to get the string value as an int.
- */
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
-#define INT2STRING(buffer, i)                                       \
-    _snprintf_s((buffer),                                           \
-                 _scprintf("%d", (i)) + 1,                          \
-                 _scprintf("%d", (i)) + 1,                          \
-                 "%d",                                              \
-                 (i))
 #define STRCAT(dest, n, src) strcat_s((dest), (n), (src))
 #else
-#define INT2STRING(buffer, i)                                       \
-    _snprintf((buffer),                                             \
-               _scprintf("%d", (i)) + 1,                            \
-               "%d",                                                \
-              (i))
 #define STRCAT(dest, n, src) strcat((dest), (src))
 #endif
 #else
-#define INT2STRING(buffer, i) snprintf((buffer), sizeof((buffer)), "%d", (i))
 #define STRCAT(dest, n, src) strcat((dest), (src))
 #endif
+
+/* Converts integer to its string representation in decimal notation. */
+static void itoa(long int num, char* str) {
+    int index = 0;
+    int sign = 1;
+    // Convert to unsigned to handle -LLONG_MIN overflow
+    unsigned long int absNum;
+
+    // Handle the case of 0
+    if (num == 0) {
+        str[index++] = '0';
+        str[index] = '\0';
+        return;
+    }
+
+    // Handle negative numbers
+    if (num < 0) {
+        sign = -1;
+        absNum = -num;
+    } else {
+        absNum = num;
+    }
+
+    // Convert the number to string
+    int digit;
+    while (absNum > 0) {
+        digit = absNum % 10;
+        str[index++] = digit + '0';  // Convert digit to character
+        absNum /= 10;
+    }
+
+    // Add minus sign if negative
+    if (sign == -1) {
+        str[index++] = '-';
+    }
+
+    str[index] = '\0';  // Null terminator
+
+    // Reverse the string
+    int start = 0;
+    int end = index - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start++] = str[end];
+        str[end--] = temp;
+    }
+}
 
 typedef struct type_registry_t {
     PyObject* encoder_map;
