@@ -2950,10 +2950,17 @@ static int _cbson_traverse(PyObject *m, visitproc visit, void *arg) {
     Py_VISIT(GETSTATE(m)->MaxKey);
     Py_VISIT(GETSTATE(m)->UTC);
     Py_VISIT(GETSTATE(m)->REType);
+    Py_VISIT(GETSTATE(m)->BSONInt64);
+    Py_VISIT(GETSTATE(m)->Decimal128);
+    Py_VISIT(GETSTATE(m)->Mapping);
+    Py_VISIT(GETSTATE(m)->DatetimeMS);
+    Py_VISIT(GETSTATE(m)->_min_datetime_ms);
+    Py_VISIT(GETSTATE(m)->_max_datetime_ms);
     return 0;
 }
 
 static int _cbson_clear(PyObject *m) {
+    printf("_cbson_clear\n");
     Py_CLEAR(GETSTATE(m)->Binary);
     Py_CLEAR(GETSTATE(m)->Code);
     Py_CLEAR(GETSTATE(m)->ObjectId);
@@ -2965,8 +2972,37 @@ static int _cbson_clear(PyObject *m) {
     Py_CLEAR(GETSTATE(m)->MaxKey);
     Py_CLEAR(GETSTATE(m)->UTC);
     Py_CLEAR(GETSTATE(m)->REType);
-    Py_CLEAR(GETSTATE(m)->_type_marker_str);
+    Py_CLEAR(GETSTATE(m)->BSONInt64);
+    Py_CLEAR(GETSTATE(m)->Decimal128);
+    Py_CLEAR(GETSTATE(m)->Mapping);
+    Py_CLEAR(GETSTATE(m)->DatetimeMS);
+    Py_CLEAR(GETSTATE(m)->_min_datetime_ms);
+    Py_CLEAR(GETSTATE(m)->_max_datetime_ms);
     return 0;
+}
+
+static void _cbson_free(void *m) {
+    PyObject* mod = (PyObject*)m;
+    printf("_cbson_free\n");
+    Py_CLEAR(GETSTATE(mod)->Binary);
+    Py_CLEAR(GETSTATE(mod)->Code);
+    Py_CLEAR(GETSTATE(mod)->ObjectId);
+    Py_CLEAR(GETSTATE(mod)->DBRef);
+    Py_CLEAR(GETSTATE(mod)->Regex);
+    Py_CLEAR(GETSTATE(mod)->UUID);
+    Py_CLEAR(GETSTATE(mod)->Timestamp);
+    Py_CLEAR(GETSTATE(mod)->MinKey);
+    Py_CLEAR(GETSTATE(mod)->MaxKey);
+    Py_CLEAR(GETSTATE(mod)->UTC);
+    Py_CLEAR(GETSTATE(mod)->REType);
+    Py_CLEAR(GETSTATE(mod)->BSONInt64);
+    Py_CLEAR(GETSTATE(mod)->Decimal128);
+    Py_CLEAR(GETSTATE(mod)->Mapping);
+    Py_CLEAR(GETSTATE(mod)->DatetimeMS);
+    Py_CLEAR(GETSTATE(mod)->_min_datetime_ms);
+    Py_CLEAR(GETSTATE(mod)->_max_datetime_ms);
+    Py_CLEAR(GETSTATE(mod)->_type_marker_str);
+    return;
 }
 
 static struct PyModuleDef moduledef = {
@@ -2978,7 +3014,7 @@ static struct PyModuleDef moduledef = {
     NULL,
     _cbson_traverse,
     _cbson_clear,
-    NULL
+    _cbson_free
 };
 
 PyMODINIT_FUNC

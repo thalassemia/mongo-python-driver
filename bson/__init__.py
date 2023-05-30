@@ -194,6 +194,8 @@ __all__ = [
     "has_c",
     "DatetimeConversion",
     "DatetimeMS",
+    "bson_to_dict",
+    "dict_to_bson"
 ]
 
 BSONNUM = b"\x01"  # Floating point
@@ -609,6 +611,10 @@ def _bson_to_dict(data: Any, opts: CodecOptions) -> Any:
 
 if _USE_C:
     _bson_to_dict = _cbson._bson_to_dict  # noqa: F811
+    
+def bson_to_dict(data: Any, opts: CodecOptions) -> Any:
+    """Decode a BSON string to document_class."""
+    return _bson_to_dict(data, opts)
 
 
 _PACK_FLOAT = struct.Struct("<d").pack
@@ -978,6 +984,11 @@ def _dict_to_bson(doc: Any, check_keys: bool, opts: CodecOptions, top_level: boo
 
 if _USE_C:
     _dict_to_bson = _cbson._dict_to_bson  # noqa: F811
+    
+    
+def dict_to_bson(doc: Any, check_keys: bool, opts: CodecOptions, top_level: bool = True) -> bytes:
+    """Encode a document to BSON."""
+    return _dict_to_bson(doc, check_keys, opts, top_level)
 
 
 _CODEC_OPTIONS_TYPE_ERROR = TypeError("codec_options must be an instance of CodecOptions")
@@ -1384,16 +1395,3 @@ class BSON(bytes):
 def has_c() -> bool:
     """Is the C extension installed?"""
     return _USE_C
-
-
-def _after_fork():
-    """Releases the ObjectID lock child."""
-    if ObjectId._inc_lock.locked():
-        ObjectId._inc_lock.release()
-
-
-if hasattr(os, "register_at_fork"):
-    # This will run in the same thread as the fork was called.
-    # If we fork in a critical region on the same thread, it should break.
-    # This is fine since we would never call fork directly from a critical region.
-    os.register_at_fork(after_in_child=_after_fork)

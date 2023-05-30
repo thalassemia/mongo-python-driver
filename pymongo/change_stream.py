@@ -17,7 +17,7 @@
 import copy
 from typing import TYPE_CHECKING, Any, Dict, Generic, Mapping, Optional, Union
 
-from bson import _bson_to_dict
+from bson import bson_to_dict
 from bson.raw_bson import RawBSONDocument
 from bson.timestamp import Timestamp
 from pymongo import _csot, common
@@ -418,7 +418,7 @@ class ChangeStream(Generic[_DocumentType]):
         self._start_at_operation_time = None
 
         if self._decode_custom:
-            return _bson_to_dict(change.raw, self._orig_codec_options)
+            return bson_to_dict(change.raw, self._orig_codec_options)
         return change
 
     def __enter__(self) -> "ChangeStream":
