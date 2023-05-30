@@ -280,3 +280,16 @@ class ObjectId:
     def __hash__(self) -> int:
         """Get a hash value for this :class:`ObjectId`."""
         return hash(self.__id)
+
+
+def _after_fork():
+    """Releases the ObjectID lock child."""
+    if ObjectId._inc_lock.locked():
+        ObjectId._inc_lock.release()
+
+
+if hasattr(os, "register_at_fork"):
+    # This will run in the same thread as the fork was called.
+    # If we fork in a critical region on the same thread, it should break.
+    # This is fine since we would never call fork directly from a critical region.
+    os.register_at_fork(after_in_child=_after_fork)

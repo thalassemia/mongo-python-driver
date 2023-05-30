@@ -27,7 +27,7 @@ from io import BytesIO as _BytesIO
 from typing import Any, Mapping, NoReturn
 
 import bson
-from bson import CodecOptions, _decode_selective, _dict_to_bson, _make_c_string, encode
+from bson import CodecOptions, _decode_selective, dict_to_bson, _make_c_string, encode
 from bson.int64 import Int64
 from bson.raw_bson import (
     _RAW_ARRAY_BSON_OPTIONS,
@@ -634,14 +634,14 @@ def _op_msg_no_header(flags, command, identifier, docs, opts):
     only checked *after* generating the entire message.
     """
     # Encode the command document in payload 0 without checking keys.
-    encoded = _dict_to_bson(command, False, opts)
+    encoded = dict_to_bson(command, False, opts)
     flags_type = _pack_op_msg_flags_type(flags, 0)
     total_size = len(encoded)
     max_doc_size = 0
     if identifier:
         type_one = _pack_byte(1)
         cstring = _make_c_string(identifier)
-        encoded_docs = [_dict_to_bson(doc, False, opts) for doc in docs]
+        encoded_docs = [dict_to_bson(doc, False, opts) for doc in docs]
         size = len(cstring) + sum(len(doc) for doc in encoded_docs) + 4
         encoded_size = _pack_int(size)
         total_size += size
@@ -697,9 +697,9 @@ def _op_msg(flags, command, dbname, read_preference, opts, ctx=None):
 
 def _query_impl(options, collection_name, num_to_skip, num_to_return, query, field_selector, opts):
     """Get an OP_QUERY message."""
-    encoded = _dict_to_bson(query, False, opts)
+    encoded = dict_to_bson(query, False, opts)
     if field_selector:
-        efs = _dict_to_bson(field_selector, False, opts)
+        efs = dict_to_bson(field_selector, False, opts)
     else:
         efs = b""
     max_bson_size = max(len(encoded), len(efs))
@@ -1056,7 +1056,7 @@ def _batched_op_msg_impl(operation, command, docs, ack, opts, ctx, buf):
 
     # Type 0 Section
     buf.write(b"\x00")
-    buf.write(_dict_to_bson(command, False, opts))
+    buf.write(dict_to_bson(command, False, opts))
 
     # Type 1 Section
     buf.write(b"\x01")
@@ -1072,7 +1072,7 @@ def _batched_op_msg_impl(operation, command, docs, ack, opts, ctx, buf):
     idx = 0
     for doc in docs:
         # Encode the current operation
-        value = _dict_to_bson(doc, False, opts)
+        value = dict_to_bson(doc, False, opts)
         doc_length = len(value)
         new_message_size = buf.tell() + doc_length
         # Does first document exceed max_message_size?
@@ -1219,7 +1219,7 @@ def _batched_write_command_impl(namespace, operation, command, docs, opts, ctx, 
     for doc in docs:
         # Encode the current operation
         key = str(idx).encode("utf8")
-        value = _dict_to_bson(doc, False, opts)
+        value = dict_to_bson(doc, False, opts)
         # Is there enough room to add this document? max_cmd_size accounts for
         # the two trailing null bytes.
         doc_too_large = len(value) > max_cmd_size

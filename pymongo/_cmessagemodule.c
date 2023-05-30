@@ -925,8 +925,16 @@ static int _cmessage_traverse(PyObject *m, visitproc visit, void *arg) {
 }
 
 static int _cmessage_clear(PyObject *m) {
+    printf("_cmessage_clear");
     Py_CLEAR(GETSTATE(m)->_cbson);
     return 0;
+}
+
+static void _cmessage_free(void *m) {
+    PyObject* mod = (PyObject*)m;
+    printf("_cmessage_free\n");
+    Py_CLEAR(GETSTATE(mod)->_cbson);
+    return;
 }
 
 static struct PyModuleDef moduledef = {
@@ -938,7 +946,7 @@ static struct PyModuleDef moduledef = {
         NULL,
         _cmessage_traverse,
         _cmessage_clear,
-        NULL
+        _cmessage_free,
 };
 
 PyMODINIT_FUNC

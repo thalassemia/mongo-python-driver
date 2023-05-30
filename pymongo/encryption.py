@@ -33,7 +33,7 @@ except ImportError:
     _HAVE_PYMONGOCRYPT = False
     MongoCryptCallback = object
 
-from bson import _dict_to_bson, decode, encode
+from bson import dict_to_bson, decode, encode
 from bson.binary import STANDARD, UUID_SUBTYPE, Binary
 from bson.codec_options import CodecOptions
 from bson.errors import BSONError
@@ -176,7 +176,7 @@ class _EncryptionIO(MongoCryptCallback):  # type: ignore
         """
         with self.client_ref()[database].list_collections(filter=RawBSONDocument(filter)) as cursor:
             for doc in cursor:
-                return _dict_to_bson(doc, False, _DATA_KEY_OPTS)
+                return dict_to_bson(doc, False, _DATA_KEY_OPTS)
             return None
 
     def spawn(self):
@@ -310,12 +310,12 @@ class _Encrypter:
         if opts._schema_map is None:
             schema_map = None
         else:
-            schema_map = _dict_to_bson(opts._schema_map, False, _DATA_KEY_OPTS)
+            schema_map = dict_to_bson(opts._schema_map, False, _DATA_KEY_OPTS)
 
         if opts._encrypted_fields_map is None:
             encrypted_fields_map = None
         else:
-            encrypted_fields_map = _dict_to_bson(opts._encrypted_fields_map, False, _DATA_KEY_OPTS)
+            encrypted_fields_map = dict_to_bson(opts._encrypted_fields_map, False, _DATA_KEY_OPTS)
         self._bypass_auto_encryption = opts._bypass_auto_encryption
         self._internal_client = None
 
@@ -374,7 +374,7 @@ class _Encrypter:
           The encrypted command to execute.
         """
         self._check_closed()
-        encoded_cmd = _dict_to_bson(cmd, False, codec_options)
+        encoded_cmd = dict_to_bson(cmd, False, codec_options)
         with _wrap_encryption_errors():
             encrypted_cmd = self._auto_encrypter.encrypt(database, encoded_cmd)
             # TODO: PYTHON-1922 avoid decoding the encrypted_cmd.
